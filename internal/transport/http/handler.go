@@ -1,4 +1,4 @@
-package http
+package github.com/cyril-ui-developer/Jst-Job-Search/internal/transport/http
 
 import (
 	"fmt"
