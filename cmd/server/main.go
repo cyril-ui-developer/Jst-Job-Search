@@ -5,13 +5,21 @@ import (
 	"net/http"
 
 	transportHTTP "github/cyril-ui-developer/JstJobSearch/internal/transport/http"
+	"github/cyril-ui-developer/JstJobSearch/internal/db"
 )
 
 //App - the struct which contains things like pointers to db connections
 type App struct{}
 
+//Postgress db - docker run --name jobs-search-api-db -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
 func (app *App) Run() error {
 	fmt.Println("Setting Our APP")
+	
+	var err error
+	_, err = db.NewDatabase()
+	if err != nil {
+		return err
+	}
 
 	handler := transportHTTP.NewHandler()
 	handler.SetupRoutes()
@@ -23,6 +31,7 @@ func (app *App) Run() error {
 
 	return nil
 }
+
 func main() {
 	fmt.Println("JST Job Saerch REST API, implemented in Golang")
 
