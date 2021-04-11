@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	transportHTTP "github/cyril-ui-developer/JstJobSearch/internal/transport/http"
 	"github/cyril-ui-developer/JstJobSearch/internal/db"
 	"github/cyril-ui-developer/JstJobSearch/internal/jobs"
+	transportHTTP "github/cyril-ui-developer/JstJobSearch/internal/transport/http"
 	//"github/cyril-ui-developer/JstJobSearch/internal/migration"
 )
 
@@ -16,7 +16,7 @@ type App struct{}
 //Postgress db - docker run --name jobs-search-api-db -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
 func (app *App) Run() error {
 	fmt.Println("Setting Our APP")
-	
+
 	var err error
 	database, err := db.NewDatabase()
 	if err != nil {
@@ -38,24 +38,24 @@ func (app *App) Run() error {
 		return err
 	}
 
-// =======
-// 	transportHTTP "github.com/cyril-ui-developer/Jst-Job-Search/internal/transport/http"
-// )
+	// =======
+	// 	transportHTTP "github.com/cyril-ui-developer/Jst-Job-Search/internal/transport/http"
+	// )
 
-// //App - the struct which contains things like pointers to db connections
-// type App struct{}
+	// //App - the struct which contains things like pointers to db connections
+	// type App struct{}
 
-// func (app *App) Run() error {
-// 	fmt.Println("Setting Our APP")
+	// func (app *App) Run() error {
+	// 	fmt.Println("Setting Our APP")
 
-// 	handler := transportHTTP.NewHandler()
-// 	handler.SetupRoutes()
+	// 	handler := transportHTTP.NewHandler()
+	// 	handler.SetupRoutes()
 
-// 	if err := http.ListenAnd.Serve(":8080", handler.Router); err != nil {
-// 		fmt.Println("Failed to set server")
-// 		return err
-// 	}
-// >>>>>>> a9d7ec522e030f1064b6e1d60bc491d4f70cf2e1
+	// 	if err := http.ListenAnd.Serve(":8080", handler.Router); err != nil {
+	// 		fmt.Println("Failed to set server")
+	// 		return err
+	// 	}
+	// >>>>>>> a9d7ec522e030f1064b6e1d60bc491d4f70cf2e1
 	return nil
 }
 

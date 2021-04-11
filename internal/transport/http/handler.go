@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"encoding/json"
 
 	"github.com/gorilla/mux"
 	"github/cyril-ui-developer/JstJobSearch/internal/jobs"
@@ -20,6 +21,11 @@ type Handler struct{
 	Service *jobs.Service
 }
 
+// Response - an object to store error
+type Response struct {
+    Message string
+}
+
 // Handler - returns a pointer to a Handler
 func NewHandler(service *jobs.Service) *Handler {
 	return &Handler{
@@ -31,8 +37,13 @@ func NewHandler(service *jobs.Service) *Handler {
 func (h *Handler) SetupRoutes(){
 	fmt.Println("Setting Up Routes")
 	h.Router = mux.NewRouter()
+
 	h.Router.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request){
-		fmt.Fprintf(w, "I'm alive!")
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(Response{Message: "I'm alive"}); err != nil {
+			panic(err)
+		}
 	})
 	h.Router.HandleFunc("/api/jobs/{id}", h.GetJob).Methods("GET")
 	h.Router.HandleFunc("/api/jobs",h.GetAllJobs).Methods("GET")
@@ -42,6 +53,9 @@ func (h *Handler) SetupRoutes(){
 }
 // GetJob
 func (h *Handler) GetJob(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+
 	vars := mux.Vars(r)
 	id := vars["id"]
 	
@@ -53,47 +67,79 @@ func (h *Handler) GetJob(w http.ResponseWriter, r *http.Request){
 	if err != nil {
 		fmt.Fprintf(w, "Error retrieving job by Id")
 	}
-	fmt.Fprintf(w, "%+v", job)
+	if err := json.NewEncoder(w).Encode(job); err != nil {
+		panic(err)
+	}
 }
 
 // GetAllJobs
 func (h *Handler) GetAllJobs(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+
 	jobs, err := h.Service.GetAllJobs()
 
 	if err != nil {
 		fmt.Fprintf(w, "Error retrieving all jobs")
 	}
-	fmt.Fprintf(w, "%+v", jobs)
+	if err := json.NewEncoder(w).Encode(jobs); err != nil {
+		panic(err)
+	}
 }
 // PostJob
 func (h *Handler) PostJob(w http.ResponseWriter, r *http.Request){
-	job, err := h.Service.PostJob(jobs.Job{
-		Slug:"/",
-	})
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+
+	var job jobs.Job
+	if err := json.NewDecoder(r.Body).Decode(&job); err != nil {
+	    json.NewEncoder(w).Encode(Response{Message: "Failed to decode JSON body"})
+		//fmt.Fprintf(w, "Failed to decodde JSON body")
+		return
+	}
+
+	job, err := h.Service.PostJob(job)
 
 	if err != nil {
 		fmt.Fprintf(w, "Error posting job")
 	}
-	fmt.Fprintf(w, "%+v", job)
+
+	if err := json.NewEncoder(w).Encode(job); err != nil {
+		panic(err)
+	}
 }
 
 // UpdateJob
 func (h *Handler) UpdateJob(w http.ResponseWriter, r *http.Request){
-	job, err := h.Service.UpdateJob(3, jobs.Job{
-		Slug:"/new",
-	})
-	// job, err := h.Service.UpdateJob(1, jobs.Job{
-	// 	Slug:"/",
-	// })
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+
+	var updateJob jobs.Job 
+	if err := json.NewDecoder(r.Body).Decode(&updateJob); err != nil {
+		json.NewEncoder(w).Encode(Response{Message: "Failed to decode JSON body"})
+		return
+	}
+
+	vars := mux.Vars(r)
+	id := vars["id"]
+	jobID, err := strconv.ParseUint(id, 10, 64)
+
+	job, err := h.Service.UpdateJob(uint(jobID), updateJob)
 
 	if err != nil {
 		fmt.Fprintf(w, "Error: Falied to update job")
 	}
-	fmt.Fprintf(w, "%+v", job)
+	
+	if err := json.NewEncoder(w).Encode(job); err != nil {
+		panic(err)
+	}
 }
 
 //DeleteJob -
 func (h *Handler) DeleteJob(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+
 	vars := mux.Vars(r)
 	id := vars["id"]
 	jobID, err := strconv.ParseUint(id, 10, 64)
@@ -106,7 +152,9 @@ func (h *Handler) DeleteJob(w http.ResponseWriter, r *http.Request){
 		fmt.Fprintf(w, "Error: Falied to delete job")
 	}
 
-	fmt.Fprintf(w, "Job successfully deleted")
+	if err := json.NewEncoder(w).Encode(Response{Message: "Job Successfully Deleted."}); err != nil {
+		panic(err)
+	}
 }
 // =======
 // }
