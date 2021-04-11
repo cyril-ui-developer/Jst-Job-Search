@@ -23,7 +23,8 @@ type Handler struct{
 
 // Response - an object to store error
 type Response struct {
-    Message string
+	Message string
+	Error string
 }
 
 // Handler - returns a pointer to a Handler
@@ -61,11 +62,11 @@ func (h *Handler) GetJob(w http.ResponseWriter, r *http.Request){
 	
 	jobID, err := strconv.ParseUint(id, 10, 64)
 	if err != nil {
-		fmt.Fprintf(w, "Unable to parse uint from ID")
+		errorResponse(w, "Unable to parse uint from ID", err)
 	}
 	job, err := h.Service.GetJob(uint(jobID))
 	if err != nil {
-		fmt.Fprintf(w, "Error retrieving job by Id")
+		errorResponse(w, "Error retrieving job by Id", err)
 	}
 	if err := json.NewEncoder(w).Encode(job); err != nil {
 		panic(err)
@@ -80,7 +81,7 @@ func (h *Handler) GetAllJobs(w http.ResponseWriter, r *http.Request){
 	jobs, err := h.Service.GetAllJobs()
 
 	if err != nil {
-		fmt.Fprintf(w, "Error retrieving all jobs")
+		errorResponse(w, "Error retrieving all jobs", err)
 	}
 	if err := json.NewEncoder(w).Encode(jobs); err != nil {
 		panic(err)
@@ -89,12 +90,12 @@ func (h *Handler) GetAllJobs(w http.ResponseWriter, r *http.Request){
 // PostJob
 func (h *Handler) PostJob(w http.ResponseWriter, r *http.Request){
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
+	//w.WriteHeader(http.StatusOK)
 
 	var job jobs.Job
 	if err := json.NewDecoder(r.Body).Decode(&job); err != nil {
-	    json.NewEncoder(w).Encode(Response{Message: "Failed to decode JSON body"})
-		//fmt.Fprintf(w, "Failed to decodde JSON body")
+	   // json.NewEncoder(w).Encode(Response{Message: "Failed to decode JSON body"})
+		errorResponse(w, "Failed to decodde JSON body", err)
 		return
 	}
 
@@ -116,8 +117,9 @@ func (h *Handler) UpdateJob(w http.ResponseWriter, r *http.Request){
 
 	var updateJob jobs.Job 
 	if err := json.NewDecoder(r.Body).Decode(&updateJob); err != nil {
-		json.NewEncoder(w).Encode(Response{Message: "Failed to decode JSON body"})
-		return
+		// json.NewEncoder(w).Encode(Response{Message: "Failed to decode JSON body"})
+		// return
+		errorResponse(w, "Failed to decode JSON body", err)
 	}
 
 	vars := mux.Vars(r)
@@ -127,7 +129,7 @@ func (h *Handler) UpdateJob(w http.ResponseWriter, r *http.Request){
 	job, err := h.Service.UpdateJob(uint(jobID), updateJob)
 
 	if err != nil {
-		fmt.Fprintf(w, "Error: Falied to update job")
+		errorResponse(w, "Error: Falied to update job", err)
 	}
 	
 	if err := json.NewEncoder(w).Encode(job); err != nil {
@@ -144,12 +146,12 @@ func (h *Handler) DeleteJob(w http.ResponseWriter, r *http.Request){
 	id := vars["id"]
 	jobID, err := strconv.ParseUint(id, 10, 64)
 	if err != nil {
-		fmt.Fprintf(w, "Unable to parse uint from ID")
+		errorResponse(w, "Unable to parse uint from ID", err)
 	}
 
 	err = h.Service.DeleteJob(uint(jobID))
 	if err != nil {
-		fmt.Fprintf(w, "Error: Falied to delete job")
+		errorResponse(w, "Error: Falied to delete job", err)
 	}
 
 	if err := json.NewEncoder(w).Encode(Response{Message: "Job Successfully Deleted."}); err != nil {
@@ -171,4 +173,11 @@ func (h *Handler) DeleteJob(w http.ResponseWriter, r *http.Request){
 // 		fmt.Println("w, I'm alive!")
 // 	})
 // }
+
+func errorResponse(w http.ResponseWriter, message string, err error){
+	w.WriteHeader(http.StatusInternalServerError)
+	if err := json.NewEncoder(w).Encode(Response{Message: message, Error: err.Error()}); err != nil {
+		panic(err)
+	}
+}
 
