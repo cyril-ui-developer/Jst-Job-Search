@@ -28,36 +28,27 @@ func (h *Handler) SetupRoutes(){
 	h.Router.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request){
 		fmt.Fprintf(w, "I'm alive!")
 	})
-	h.Router.HandleFunc("/api/jobs/{i}", h.GetJob).Methods("GET")
+	h.Router.HandleFunc("/api/jobs/{id}", h.GetJob).Methods("GET")
 	h.Router.HandleFunc("/api/jobs",h.GetAllJobs).Methods("GET")
 	h.Router.HandleFunc("/api/job",h.PostJob).Methods("POST")
+	h.Router.HandleFunc("/api/jobs/{id}", h.UpdateJob).Methods("PUT")
+	h.Router.HandleFunc("/api/jobs/{id}", h.DeleteJob).Methods("DELETE")
 }
 // GetJob
 func (h *Handler) GetJob(w http.ResponseWriter, r *http.Request){
 	vars := mux.Vars(r)
 	id := vars["id"]
 	
-	i, err := strconv.ParseUint(id, 10, 64)
+	jobID, err := strconv.ParseUint(id, 10, 64)
 	if err != nil {
 		fmt.Fprintf(w, "Unable to parse uint from ID")
 	}
-	job, err := h.Service.GetJob(uint(i))
+	job, err := h.Service.GetJob(uint(jobID))
 	if err != nil {
 		fmt.Fprintf(w, "Error retrieving job by Id")
 	}
 	fmt.Fprintf(w, "%+v", job)
 }
-
-// GetAllJob
-// func (h *Handler) GetJob(w http.ResponseWriter, r *http.Request){
-// 	jobs, err := h.Service.GetAllJob()
-// 	i, err := strconv.ParseUint(id, 10, 64)
-
-// 	if err != nil {
-// 		fmt.Fprintf(w, "Error retrieving all jobs")
-// 	}
-// 	fmt.Fprintf(w, "%+v", jobs)
-// }
 
 // GetAllJobs
 func (h *Handler) GetAllJobs(w http.ResponseWriter, r *http.Request){
@@ -78,4 +69,36 @@ func (h *Handler) PostJob(w http.ResponseWriter, r *http.Request){
 		fmt.Fprintf(w, "Error posting job")
 	}
 	fmt.Fprintf(w, "%+v", job)
+}
+
+// UpdateJob
+func (h *Handler) UpdateJob(w http.ResponseWriter, r *http.Request){
+	job, err := h.Service.UpdateJob(2, jobs.Job{
+		Slug:"/new",
+	})
+	// job, err := h.Service.UpdateJob(1, jobs.Job{
+	// 	Slug:"/",
+	// })
+
+	if err != nil {
+		fmt.Fprintf(w, "Error: Falied to update job")
+	}
+	fmt.Fprintf(w, "%+v", job)
+}
+
+//DeleteJob -
+func (h *Handler) DeleteJob(w http.ResponseWriter, r *http.Request){
+	vars := mux.Vars(r)
+	id := vars["id"]
+	jobID, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		fmt.Fprintf(w, "Unable to parse uint from ID")
+	}
+
+	err = h.Service.DeleteJob(uint(jobID))
+	if err != nil {
+		fmt.Fprintf(w, "Error: Falied to delete job")
+	}
+
+	fmt.Fprintf(w, "Job successfully deleted")
 }
