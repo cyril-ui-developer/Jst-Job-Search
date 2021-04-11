@@ -6,6 +6,8 @@ import (
 
 	transportHTTP "github/cyril-ui-developer/JstJobSearch/internal/transport/http"
 	"github/cyril-ui-developer/JstJobSearch/internal/db"
+	"github/cyril-ui-developer/JstJobSearch/internal/jobs"
+	//"github/cyril-ui-developer/JstJobSearch/internal/migration"
 )
 
 //App - the struct which contains things like pointers to db connections
@@ -16,12 +18,19 @@ func (app *App) Run() error {
 	fmt.Println("Setting Our APP")
 	
 	var err error
-	_, err = db.NewDatabase()
+	database, err := db.NewDatabase()
 	if err != nil {
 		return err
 	}
 
-	handler := transportHTTP.NewHandler()
+	err = db.MigrateDB(database)
+	if err != nil {
+		return err
+	}
+
+	jobService := jobs.NewService(database)
+
+	handler := transportHTTP.NewHandler(jobService)
 	handler.SetupRoutes()
 
 	if err := http.ListenAndServe(":8080", handler.Router); err != nil {

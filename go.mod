@@ -8,3 +8,4 @@ require (
 )
 
 replace github.com/cyril-ui-developer/jst-job-search/internal/db => ../db
+replace github.com/cyril-ui-developer/jst-job-search/internal/jobs => ../jobs
