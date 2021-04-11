@@ -38,6 +38,24 @@ func (app *App) Run() error {
 		return err
 	}
 
+// =======
+// 	transportHTTP "github.com/cyril-ui-developer/Jst-Job-Search/internal/transport/http"
+// )
+
+// //App - the struct which contains things like pointers to db connections
+// type App struct{}
+
+// func (app *App) Run() error {
+// 	fmt.Println("Setting Our APP")
+
+// 	handler := transportHTTP.NewHandler()
+// 	handler.SetupRoutes()
+
+// 	if err := http.ListenAnd.Serve(":8080", handler.Router); err != nil {
+// 		fmt.Println("Failed to set server")
+// 		return err
+// 	}
+// >>>>>>> a9d7ec522e030f1064b6e1d60bc491d4f70cf2e1
 	return nil
 }
 

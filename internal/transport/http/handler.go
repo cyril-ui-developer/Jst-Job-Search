@@ -8,6 +8,12 @@ import (
 	"github.com/gorilla/mux"
 	"github/cyril-ui-developer/JstJobSearch/internal/jobs"
 )
+
+// import (
+// 	"fmt"
+// 	"github.com/gorilla/mux"
+
+// )
 //Handler - stores the pointer to the jobs service
 type Handler struct{
 	Router *mux.Router
@@ -73,7 +79,7 @@ func (h *Handler) PostJob(w http.ResponseWriter, r *http.Request){
 
 // UpdateJob
 func (h *Handler) UpdateJob(w http.ResponseWriter, r *http.Request){
-	job, err := h.Service.UpdateJob(2, jobs.Job{
+	job, err := h.Service.UpdateJob(3, jobs.Job{
 		Slug:"/new",
 	})
 	// job, err := h.Service.UpdateJob(1, jobs.Job{
@@ -102,3 +108,19 @@ func (h *Handler) DeleteJob(w http.ResponseWriter, r *http.Request){
 
 	fmt.Fprintf(w, "Job successfully deleted")
 }
+// =======
+// }
+
+// func NewHandler() *Handler {
+// 	return &Handler{}
+// }
+
+// //SetupRoutes - sets up all the routes for the app
+// func (h *Haandler) SetupRoutes(){
+// 	fmt.Println("Setting Up Routes")
+// 	h.Router = mux.NewHandler()
+// 	h.Router.HaandleFunc("/api/health", funct(w http.ResponseWriter, *http.Request){
+// 		fmt.Println("w, I'm alive!")
+// 	})
+// }
+
