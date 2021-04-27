@@ -14,6 +14,15 @@ import (
 type App struct{}
 
 //Postgress db - docker run --name jobs-search-api-db -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
+// kind create cluster
+// kubectl cluster-info --context kind-kind
+// envsubst < config/deployment.yaml > temp.yml
+// docker build -t forbsey/comment-api .
+// docker push forsey/comment-api:latest
+// envsubst < config/deployment.yaml | kubectl apply -f -
+// kubectl apply -f config/service.yml
+//kubectl port-forward service/comments-api 8080:8080
+
 func (app *App) Run() error {
 	fmt.Println("Setting Our APP")
 

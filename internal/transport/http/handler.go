@@ -42,7 +42,7 @@ func (h *Handler) SetupRoutes(){
 	h.Router.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request){
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(Response{Message: "I'm alive"}); err != nil {
+		if err := json.NewEncoder(w).Encode("I'm alive"); err != nil {
 			panic(err)
 		}
 	})
