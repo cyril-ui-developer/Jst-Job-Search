@@ -30,6 +30,19 @@ type Response struct {
 	Error string
 }
 
+// LoggingMiddleware - a handy middleware function that logs out incoming requests
+func LoggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.WithFields(
+			log.Fields{
+				"Method":      r.Method,
+				"Path":        r.URL.Path,
+			}).
+			Info("handled request")
+		next.ServeHTTP(w, r)
+	})
+}
+
 // Handler - returns a pointer to a Handler
 func NewHandler(service *jobs.Service) *Handler {
 	return &Handler{
@@ -41,6 +54,7 @@ func NewHandler(service *jobs.Service) *Handler {
 func (h *Handler) SetupRoutes(){
 	log.Info("Setting Up Routes")
 	h.Router = mux.NewRouter()
+	h.Router.Use(LoggingMiddleware)
 
 	h.Router.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request){
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
