@@ -8,6 +8,9 @@ import (
 
 	"github.com/gorilla/mux"
 	"github/cyril-ui-developer/JstJobSearch/internal/jobs"
+	log "github.com/sirupsen/logrus"
+	
+	
 )
 
 // import (
@@ -36,7 +39,7 @@ func NewHandler(service *jobs.Service) *Handler {
 
 //SetupRoutes - sets up all the routes for the app
 func (h *Handler) SetupRoutes(){
-	fmt.Println("Setting Up Routes")
+	log.Info("Setting Up Routes")
 	h.Router = mux.NewRouter()
 
 	h.Router.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request){

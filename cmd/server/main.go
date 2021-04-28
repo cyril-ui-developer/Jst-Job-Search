@@ -8,10 +8,14 @@ import (
 	"github/cyril-ui-developer/JstJobSearch/internal/jobs"
 	transportHTTP "github/cyril-ui-developer/JstJobSearch/internal/transport/http"
 	//"github/cyril-ui-developer/JstJobSearch/internal/migration"
+	log "github.com/sirupsen/logrus"
 )
 
 //App - the struct which contains things like pointers to db connections
-type App struct{}
+type App struct{
+	Name string
+    Version string
+}
 
 //Postgress db - docker run --name jobs-search-api-db -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
 // kind create cluster
@@ -24,7 +28,13 @@ type App struct{}
 //kubectl port-forward service/comments-api 8080:8080
 
 func (app *App) Run() error {
-	fmt.Println("Setting Our APP")
+	log.Info("Setting Our APP")
+	log.SetFormatter(&log.JSONFormatter{})
+	log.WithFields(
+		log.Fields{
+			"AppName":    app.Name,
+			"AppVersion": app.Version,
+		}).Info("Setting Up Our APP")
 
 	var err error
 	database, err := db.NewDatabase()
@@ -43,7 +53,7 @@ func (app *App) Run() error {
 	handler.SetupRoutes()
 
 	if err := http.ListenAndServe(":8080", handler.Router); err != nil {
-		fmt.Println("Failed to set up server")
+		log.Error("Failed to set up server")
 		return err
 	}
 
@@ -71,9 +81,12 @@ func (app *App) Run() error {
 func main() {
 	fmt.Println("JST Job Saerch REST API, implemented in Golang")
 
-	app := App{}
+	app := App{
+		Name: "JST Job API",
+		Version: "1.0",
+	}
 	if err := app.Run(); err != nil {
-		fmt.Println("Error starting up JST Job Saerch REST API")
-		fmt.Println(err)
+		log.Error("Error starting up JST Job Saerch REST API")
+		log.Fatal(err)
 	}
 }
