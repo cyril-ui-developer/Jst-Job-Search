@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"encoding/json"
+	"errors"
 
 	"github.com/gorilla/mux"
 	"github/cyril-ui-developer/JstJobSearch/internal/jobs"
@@ -43,6 +44,19 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// BasicAuth - a handy middleware function that logs out incoming requests
+func BasicAuth(original func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		user, pass, ok := r.BasicAuth()
+		if user == "admin" && pass == "password" && ok {
+			original(w, r)
+		} else {
+			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			errorResponse(w, "not authorized", errors.New("not authorized"))
+		}
+	}
+}
+
 // Handler - returns a pointer to a Handler
 func NewHandler(service *jobs.Service) *Handler {
 	return &Handler{
@@ -64,7 +78,7 @@ func (h *Handler) SetupRoutes(){
 		}
 	})
 	h.Router.HandleFunc("/api/jobs/{id}", h.GetJob).Methods("GET")
-	h.Router.HandleFunc("/api/jobs",h.GetAllJobs).Methods("GET")
+	h.Router.HandleFunc("/api/jobs", BasicAuth(h.GetAllJobs)).Methods("GET")
 	h.Router.HandleFunc("/api/job",h.PostJob).Methods("POST")
 	h.Router.HandleFunc("/api/jobs/{id}", h.UpdateJob).Methods("PUT")
 	h.Router.HandleFunc("/api/jobs/{id}", h.DeleteJob).Methods("DELETE")
