@@ -6,10 +6,12 @@ import (
 	"strconv"
 	"encoding/json"
 	"errors"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github/cyril-ui-developer/JstJobSearch/internal/jobs"
 	log "github.com/sirupsen/logrus"
+	jwt "github.com/dgrijalva/jwt-go"
 	
 	
 )
@@ -45,10 +47,54 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 }
 
 // BasicAuth - a handy middleware function that logs out incoming requests
-func BasicAuth(original func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
+// func BasicAuth(original func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 		user, pass, ok := r.BasicAuth()
+// 		if user == "admin" && pass == "password" && ok {
+// 			original(w, r)
+// 		} else {
+// 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+// 			errorResponse(w, "not authorized", errors.New("not authorized"))
+// 		}
+// 	}
+// }
+
+
+// validateToken - validates an incoming jwt token
+func validateToken(accessToken string) bool {
+	// replace this by loading in a private RSA cert for more security
+	var mySigningKey = []byte("secret12345")
+	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("There was an error")
+		}
+		return mySigningKey, nil
+	})
+
+	if err != nil {
+		return false
+	}
+
+	return token.Valid
+}
+
+// JWTAuth - a handy middleware function that will provide basic auth around specific endpoints
+func JWTAuth(original func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		user, pass, ok := r.BasicAuth()
-		if user == "admin" && pass == "password" && ok {
+		log.Info("jwt auth endpoint hit")
+		authHeader := r.Header["Authorization"]
+		if authHeader == nil {
+			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			errorResponse(w, "not authorized", errors.New("not authorized"))
+		}
+
+		authHeaderParts := strings.Split(authHeader[0], " ")
+		if len(authHeaderParts) != 2 || strings.ToLower(authHeaderParts[0]) != "bearer" {
+			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			errorResponse(w, "not authorized", errors.New("not authorized"))
+		}
+
+		if validateToken(authHeaderParts[1]) {
 			original(w, r)
 		} else {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -56,6 +102,7 @@ func BasicAuth(original func(w http.ResponseWriter, r *http.Request)) func(w htt
 		}
 	}
 }
+
 
 // Handler - returns a pointer to a Handler
 func NewHandler(service *jobs.Service) *Handler {
@@ -78,10 +125,10 @@ func (h *Handler) SetupRoutes(){
 		}
 	})
 	h.Router.HandleFunc("/api/jobs/{id}", h.GetJob).Methods("GET")
-	h.Router.HandleFunc("/api/jobs", BasicAuth(h.GetAllJobs)).Methods("GET")
-	h.Router.HandleFunc("/api/job",h.PostJob).Methods("POST")
-	h.Router.HandleFunc("/api/jobs/{id}", h.UpdateJob).Methods("PUT")
-	h.Router.HandleFunc("/api/jobs/{id}", h.DeleteJob).Methods("DELETE")
+	h.Router.HandleFunc("/api/jobs", h.GetAllJobs).Methods("GET")
+	h.Router.HandleFunc("/api/job",JWTAuth(h.PostJob)).Methods("POST")
+	h.Router.HandleFunc("/api/jobs/{id}", JWTAuth(h.UpdateJob)).Methods("PUT")
+	h.Router.HandleFunc("/api/jobs/{id}", JWTAuth(h.DeleteJob)).Methods("DELETE")
 }
 // GetJob
 func (h *Handler) GetJob(w http.ResponseWriter, r *http.Request){
